@@ -2,31 +2,23 @@ name: CI - Integrador de Vendas Musa
 
 on:
   push:
-    branches:
-      - develop
-      - main
+    branches: [ develop, main ]
   pull_request:
-    branches:
-      - develop
-      - main
+    branches: [ develop, main ]
 
 jobs:
   build:
-    name: Build & Test (Maven)
     runs-on: ubuntu-latest
-
     steps:
-      - name: 📥 Checkout código
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: ⚙️ Configurar JDK 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: 'maven'
 
-      - name: 💾 Cache de dependências Maven
+      - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
@@ -34,15 +26,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # Ajuste o caminho abaixo se o pom.xml estiver dentro de uma subpasta
-      - name: 🧱 Build do projeto (com H2)
-        run: mvn -B clean package -- -Dspring.profiles.active=ci
+      - name: Build and Test
+        run: mvn -B clean package
+        env:
+          SPRING_PROFILES_ACTIVE: ci
 
-
-      - name: 🧪 Executar testes
-        working-directory: ./Integracao-de-Vendas-Musa
-        run: mvn test
-
-      - name: 📦 Exibir artefato gerado
-        working-directory: ./Integracao-de-Vendas-Musa
-        run: ls -lh target || echo "Diretório target não encontrado"
+      - name: List build artifacts
+        run: ls -lh target || echo "Nenhum artefato gerado"
